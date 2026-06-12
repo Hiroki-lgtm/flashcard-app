@@ -603,6 +603,18 @@ else:
                 speakerBtn.onclick = function() {{
                     var msg = new SpeechSynthesisUtterance({word_js});
                     msg.lang = 'en-US';
+                    msg.rate = 0.9; // 単語学習用に少しだけゆっくりはっきり発音させる
+                    
+                    // 利用可能な音声リストから高品質なネイティブ英語音声を優先して選ぶ
+                    var voices = window.speechSynthesis.getVoices();
+                    var englishVoices = voices.filter(function(v) {{ return v.lang.startsWith('en'); }});
+                    if (englishVoices.length > 0) {{
+                        var preferredVoice = englishVoices.find(function(v) {{
+                            return v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Alex') || v.name.includes('Daniel');
+                        }});
+                        msg.voice = preferredVoice || englishVoices[0];
+                    }}
+                    
                     window.speechSynthesis.speak(msg);
                 }};
             }}
