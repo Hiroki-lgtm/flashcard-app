@@ -61,7 +61,18 @@ def start_learning(target_df, num_q):
     st.session_state.show_answer = False
     st.session_state.is_learning = True
 
-def update_mastery(word_id, new_mastery):
+def update_mastery(word_id, action, current_mastery):
+    mastery_levels = ["D", "C", "B", "A"]
+    new_mastery = current_mastery
+    
+    if action == "up":
+        if current_mastery in mastery_levels:
+            current_idx = mastery_levels.index(current_mastery)
+            if current_idx < len(mastery_levels) - 1:
+                # 定着度を1段階上げる（D->C, C->B, B->A, A->A）
+                new_mastery = mastery_levels[current_idx + 1]
+    # action == "keep" の場合はそのまま
+    
     idx = df[df["ID"] == word_id].index
     if not idx.empty:
         df.loc[idx, "Mastery"] = new_mastery
@@ -277,34 +288,28 @@ else:
         st.markdown("<br>", unsafe_allow_html=True)
         
         # ポップな単語カードデザイン
-        st.markdown(
-            f"<div style='background: linear-gradient(135deg, #6e8efb, #a777e3); padding: 50px; border-radius: 20px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); color: white;'>"
-            f"<h1 style='font-size: 4rem; margin: 0; word-wrap: break-word; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);'>{word_data['Word']}</h1>"
-            f"</div>", 
-            unsafe_allow_html=True
-        )
-        st.markdown("<br><br>", unsafe_allow_html=True)
-        
         if not st.session_state.show_answer:
-            if st.button("👀 答えを見る", use_container_width=True, type="primary"):
+            st.markdown(
+                f"<div style='background: linear-gradient(135deg, #6e8efb, #a777e3); padding: 50px; border-radius: 20px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); color: white; cursor: pointer;'>"
+                f"<h1 style='font-size: 4rem; margin: 0; word-wrap: break-word; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);'>{word_data['Word']}</h1>"
+                f"</div>", 
+                unsafe_allow_html=True
+            )
+            st.markdown("<br><br>", unsafe_allow_html=True)
+            if st.button("🔄 タップして裏返す", use_container_width=True, type="primary"):
                 st.session_state.show_answer = True
                 st.rerun()
         else:
             st.markdown(
-                f"<div style='background-color: #fff0f5; padding: 40px; border-radius: 20px; text-align: center; border: 3px dashed #ff6b6b; box-shadow: 0 8px 16px rgba(0,0,0,0.05);'>"
-                f"<h2 style='font-size: 2.5rem; margin: 0; color: #d63031; word-wrap: break-word;'>{word_data['Meaning']}</h2>"
+                f"<div style='background-color: #fff0f5; padding: 50px; border-radius: 20px; text-align: center; border: 3px dashed #ff6b6b; box-shadow: 0 8px 16px rgba(0,0,0,0.05);'>"
+                f"<h2 style='font-size: 3rem; margin: 0; color: #d63031; word-wrap: break-word;'>{word_data['Meaning']}</h2>"
                 f"</div>", 
                 unsafe_allow_html=True
             )
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.write("🎯 **この単語の定着度はどうでしたか？**")
+            st.markdown("<br><br>", unsafe_allow_html=True)
             
-            col1, col2, col3, col4 = st.columns(4)
+            col1, col2 = st.columns(2)
             with col1:
-                st.button("🟦 A (完璧)", use_container_width=True, on_click=update_mastery, args=(word_data["ID"], "A"))
+                st.button("👈 もう一度", use_container_width=True, on_click=update_mastery, args=(word_data["ID"], "keep", word_data["Mastery"]))
             with col2:
-                st.button("🟩 B (だいたい)", use_container_width=True, on_click=update_mastery, args=(word_data["ID"], "B"))
-            with col3:
-                st.button("🟨 C (うろ覚え)", use_container_width=True, on_click=update_mastery, args=(word_data["ID"], "C"))
-            with col4:
-                st.button("🟥 D (ダメ)", use_container_width=True, on_click=update_mastery, args=(word_data["ID"], "D"))
+                st.button("できた 👉", use_container_width=True, type="primary", on_click=update_mastery, args=(word_data["ID"], "up", word_data["Mastery"]))
