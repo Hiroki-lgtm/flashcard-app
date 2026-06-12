@@ -323,36 +323,31 @@ else:
         st.caption(f"🚀 進捗: **{curr_idx + 1} / {total_q}** 問目")
         st.progress((curr_idx) / total_q)
         
-        # 前に戻るボタン
-        col_back, _ = st.columns([1, 4])
-        with col_back:
-            st.button("↩️ 前に戻る", use_container_width=True, on_click=go_back, disabled=(curr_idx == 0))
-            
         st.markdown("<br>", unsafe_allow_html=True)
         
         last_action = st.session_state.get("last_action", "start")
         if last_action == "up":
-            anim_css = "animation: enterFromLeft 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;"
+            anim_css = "animation: enterFromLeft 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;"
         elif last_action == "keep":
-            anim_css = "animation: enterFromRight 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;"
+            anim_css = "animation: enterFromRight 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;"
         elif last_action == "back":
-            anim_css = "animation: enterFromLeft 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;"
+            anim_css = "animation: enterFromLeft 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;"
         else:
-            anim_css = "animation: popIn 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;"
+            anim_css = "animation: popIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;"
         
         # ポップな単語カードデザイン (タップで裏返るCSSアニメーション)
         css = f"""
         <style>
         @keyframes enterFromRight {{
-            from {{ transform: translateX(100px); opacity: 0; }}
+            from {{ transform: translateX(100vw); opacity: 0; }}
             to {{ transform: translateX(0); opacity: 1; }}
         }}
         @keyframes enterFromLeft {{
-            from {{ transform: translateX(-100px); opacity: 0; }}
+            from {{ transform: translateX(-100vw); opacity: 0; }}
             to {{ transform: translateX(0); opacity: 1; }}
         }}
         @keyframes popIn {{
-            from {{ transform: scale(0.9); opacity: 0; }}
+            from {{ transform: scale(0.8); opacity: 0; }}
             to {{ transform: scale(1); opacity: 1; }}
         }}
         .flip-card-container {{
@@ -410,6 +405,7 @@ else:
         </style>
         """
         
+        # 単語が途中で改行されないよう、フォントサイズを動的調整しつつ word-break を keep-all に
         card_html = f"""
         {css}
         <div class="flip-card-container">
@@ -417,15 +413,17 @@ else:
                 <input type="checkbox" class="flip-toggle" id="flip_{curr_idx}">
                 <div class="flip-card-inner">
                     <div class="flip-card-front">
-                        <h1 style='font-size: 4rem; margin: 0; word-wrap: break-word; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);'>{word_data['Word']}</h1>
+                        <h1 style='font-size: clamp(2rem, 8vw, 4rem); margin: 0; word-break: keep-all; overflow-wrap: normal; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); padding: 0 20px;'>{word_data['Word']}</h1>
                     </div>
                     <div class="flip-card-back">
-                        <h2 style='font-size: 2.5rem; margin: 0; word-wrap: break-word;'>{word_data['Meaning']}</h2>
+                        <h2 style='font-size: clamp(1.5rem, 6vw, 2.5rem); margin: 0; word-break: keep-all; overflow-wrap: normal; padding: 0 20px;'>{word_data['Meaning']}</h2>
                     </div>
                 </div>
             </label>
         </div>
         <span class="flip-instruction">タップして裏返す</span>
+        <!-- 強制的にチェックボックスを外すハック -->
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" onload="var cb=document.getElementById('flip_{curr_idx}'); if(cb) cb.checked=false;" style="display:none;">
         """
         
         st.markdown(card_html, unsafe_allow_html=True)
@@ -436,3 +434,6 @@ else:
             st.button("👈 もう一度", use_container_width=True, on_click=update_mastery, args=(word_data["ID"], "keep", word_data["Mastery"]))
         with col2:
             st.button("できた 👉", use_container_width=True, type="primary", on_click=update_mastery, args=(word_data["ID"], "up", word_data["Mastery"]))
+            
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.button("↩️ 前に戻る", use_container_width=True, on_click=go_back, disabled=(curr_idx == 0))
