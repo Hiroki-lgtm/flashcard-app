@@ -10,26 +10,31 @@ st.set_page_config(page_title="Flashcards", page_icon="📚", layout="centered")
 # --- 全体UIのCSSポリッシュ ---
 st.markdown("""
 <style>
-/* スマホでのサイドバー開閉ボタン（＞）を大きく、色付きにして目立たせる */
+/* ヘッダー全体（サイドバー展開ボタンやGitHubアイコンがある行）の色を変更 */
+[data-testid="stHeader"] {
+    background: linear-gradient(90deg, #6e8efb, #a777e3) !important;
+}
+
+/* ヘッダー内のアイコン類の色を白にする */
+[data-testid="stHeader"] svg {
+    fill: white !important;
+    color: white !important;
+}
+
+/* スマホでのサイドバー開閉ボタン（＞） */
 [data-testid="collapsedControl"] {
     transform: scale(1.5) !important;
     transform-origin: top left !important;
-    background-color: #6e8efb !important;
+    background-color: transparent !important;
     color: white !important;
-    border-radius: 0 0 15px 0 !important;
+    border-radius: 0 !important;
     padding: 5px !important;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.3) !important;
+    box-shadow: none !important;
     z-index: 999999 !important;
     transition: all 0.2s ease;
 }
 [data-testid="collapsedControl"]:hover {
     transform: scale(1.6) !important;
-}
-
-/* StreamlitのSVGアイコンを白にする */
-[data-testid="collapsedControl"] svg {
-    fill: white !important;
-    color: white !important;
 }
 
 /* プライマリボタン（スタート、できた等）のグラデーションとホバー時の浮き上がり */
@@ -79,6 +84,29 @@ span[id^="speaker-icon"]:hover {
 }
 </style>
 """, unsafe_allow_html=True)
+
+# スワイプでサイドバーを開くJS
+import streamlit.components.v1 as components
+components.html("""
+<script>
+    var parentDoc = window.parent.document;
+    if (!parentDoc.body.hasAttribute('data-swipe-listener')) {
+        parentDoc.body.setAttribute('data-swipe-listener', 'true');
+        var startX = 0;
+        parentDoc.addEventListener('touchstart', function(e) {
+            startX = e.changedTouches[0].screenX;
+        }, {passive: true});
+        parentDoc.addEventListener('touchend', function(e) {
+            var endX = e.changedTouches[0].screenX;
+            // 左端(40px以内)から50px以上右へスワイプした場合
+            if (startX < 40 && endX > startX + 50) {
+                var sidebarBtn = parentDoc.querySelector('[data-testid="collapsedControl"]');
+                if (sidebarBtn) sidebarBtn.click();
+            }
+        }, {passive: true});
+    }
+</script>
+""", height=0, width=0)
 
 
 # --- データ接続の設定 ---
@@ -320,31 +348,6 @@ with st.sidebar:
                 use_container_width=True
             )
             
-            # フローティング「メニューを開く」ボタン（非学習時のみ表示）
-            import streamlit.components.v1 as components
-            components.html("""
-            <script>
-                var parentDoc = window.parent.document;
-                var btn = parentDoc.getElementById('custom-sidebar-fab');
-                if (!btn) {
-                    btn = parentDoc.createElement('button');
-                    btn.id = 'custom-sidebar-fab';
-                    btn.innerHTML = '⚙️ メニューを開く';
-                    btn.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 999999; font-size: 16px; padding: 12px 20px; border-radius: 30px; background: linear-gradient(135deg, #6e8efb, #a777e3); color: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-weight: bold; cursor: pointer; transition: all 0.2s ease;';
-                    
-                    btn.onmouseover = function() { btn.style.transform = 'scale(1.05)'; };
-                    btn.onmouseout = function() { btn.style.transform = 'scale(1)'; };
-                    
-                    btn.onclick = function() {
-                        var sidebarBtn = parentDoc.querySelector('[data-testid="collapsedControl"]');
-                        if (sidebarBtn) sidebarBtn.click();
-                    };
-                    parentDoc.body.appendChild(btn);
-                }
-                btn.style.display = 'block'; // Ensure it's visible
-            </script>
-            """, height=0, width=0)
-            
         else:
             st.warning("条件に合致する単語がありません。")
             
@@ -402,9 +405,6 @@ else:
             if (btn2) { btn2.click(); }
             const btn3 = window.parent.document.querySelector('button[aria-label="Collapse sidebar"]');
             if (btn3) { btn3.click(); }
-            
-            var fab = window.parent.document.getElementById('custom-sidebar-fab');
-            if (fab) fab.style.display = 'none';
         </script>
         """, height=0, width=0)
         st.session_state.close_sidebar = False
