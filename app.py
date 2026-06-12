@@ -119,61 +119,60 @@ with st.sidebar:
     st.header("⚙️ 学習設定")
     
     if df is not None:
-        # モード選択
-        mode = st.radio("学習モード", ["🎯 条件で絞り込む", "🔢 番号（ID）で指定する"])
+        min_id = int(df["ID"].min())
+        max_id = int(df["ID"].max())
         
-        target_df = pd.DataFrame()
-        st.markdown("---")
-        
-        if mode == "🎯 条件で絞り込む":
-            available_ranks = sorted(df["Rank"].dropna().unique().tolist())
-            if not available_ranks:
-                available_ranks = [1, 2, 3, 4]
+        if "start_id" not in st.session_state:
+            st.session_state.start_id = min_id
+        if "end_id" not in st.session_state:
+            st.session_state.end_id = max_id
             
-            st.write("**出題対象の Rank**")
-            # 新しいUI (pills) が使えるかチェック
-            if hasattr(st, "pills"):
-                selected_ranks = st.pills("Rank", options=available_ranks, default=available_ranks, selection_mode="multi", label_visibility="collapsed")
-            else:
-                cols = st.columns(len(available_ranks))
-                selected_ranks = []
-                for i, rank in enumerate(available_ranks):
-                    if cols[i % len(cols)].checkbox(f"R{rank}", value=True):
-                        selected_ranks.append(rank)
+        def update_id_range():
+            selected = st.session_state.get("rank_selector", [])
+            if selected:
+                rank_df = df[df["Rank"].isin(selected)]
+                if not rank_df.empty:
+                    st.session_state.start_id = int(rank_df["ID"].min())
+                    st.session_state.end_id = int(rank_df["ID"].max())
 
-            st.write("**出題対象の Mastery**")
-            mastery_options = ["A", "B", "C", "D"]
-            default_mastery = ["B", "C", "D"]
-            if hasattr(st, "pills"):
-                selected_masteries = st.pills("Mastery", options=mastery_options, default=default_mastery, selection_mode="multi", label_visibility="collapsed")
-            else:
-                cols = st.columns(4)
-                selected_masteries = []
-                for i, m in enumerate(mastery_options):
-                    if cols[i].checkbox(m, value=(m in default_mastery)):
-                        selected_masteries.append(m)
+        available_ranks = sorted(df["Rank"].dropna().unique().tolist())
+        if not available_ranks:
+            available_ranks = [1, 2, 3, 4]
             
-            target_df = df[df["Rank"].isin(selected_ranks) & df["Mastery"].isin(selected_masteries)]
-            
+        st.write("**出題対象の Rank**")
+        if hasattr(st, "pills"):
+            selected_ranks = st.pills("Rank", options=available_ranks, default=available_ranks, selection_mode="multi", label_visibility="collapsed", key="rank_selector", on_change=update_id_range)
         else:
-            # 番号（ID）で指定するモード
-            min_id = int(df["ID"].min())
-            max_id = int(df["ID"].max())
-            
-            st.write("**IDの範囲を指定**")
-            col1, col2 = st.columns(2)
-            with col1:
-                start_id = st.number_input("開始 ID", min_value=min_id, max_value=max_id, value=min_id)
-            with col2:
-                end_id = st.number_input("終了 ID", min_value=start_id, max_value=max_id, value=max_id)
-                
-            target_df = df[(df["ID"] >= start_id) & (df["ID"] <= end_id)]
+            selected_ranks = st.multiselect("Rank", options=available_ranks, default=available_ranks, label_visibility="collapsed", key="rank_selector", on_change=update_id_range)
 
+        st.write("**IDの範囲を指定**")
+        col1, col2 = st.columns(2)
+        with col1:
+            start_id = st.number_input("開始 ID", min_value=min_id, max_value=max_id, key="start_id")
+        with col2:
+            end_id = st.number_input("終了 ID", min_value=min_id, max_value=max_id, key="end_id")
+
+        st.write("**出題対象の Mastery**")
+        mastery_options = ["A", "B", "C", "D"]
+        default_mastery = ["B", "C", "D"]
+        if hasattr(st, "pills"):
+            selected_masteries = st.pills("Mastery", options=mastery_options, default=default_mastery, selection_mode="multi", label_visibility="collapsed")
+        else:
+            selected_masteries = st.multiselect("Mastery", options=mastery_options, default=default_mastery, label_visibility="collapsed")
+        
         st.markdown("---")
+        
+        target_df = df[
+            (df["ID"] >= min(start_id, end_id)) & 
+            (df["ID"] <= max(start_id, end_id)) & 
+            (df["Rank"].isin(selected_ranks)) & 
+            (df["Mastery"].isin(selected_masteries))
+        ]
         
         if not target_df.empty:
             st.info(f"対象の単語数: **{len(target_df)}** 語")
-            num_questions = st.slider("今回の出題数", min_value=1, max_value=len(target_df), value=min(20, len(target_df)))
+            max_q = min(200, len(target_df))
+            num_questions = st.number_input("今回の出題数 (最大200)", min_value=1, max_value=max_q, value=min(20, max_q))
             
             if st.button("🚀 学習をスタート", use_container_width=True, type="primary"):
                 start_learning(target_df, num_questions)
