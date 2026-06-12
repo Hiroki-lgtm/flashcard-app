@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import random
 import os
+import threading
 
 # --- 設定 ---
 st.set_page_config(page_title="Antigravity Flashcards", page_icon="📚", layout="centered")
@@ -27,6 +28,9 @@ if "is_learning" not in st.session_state:
 
 # --- データ読み込み ---
 def load_data():
+    if "df" in st.session_state:
+        return st.session_state.df
+
     try:
         if USE_GSHEETS and "connections" in st.secrets and "gsheets" in st.secrets.connections:
             conn = st.connection("gsheets", type=GSheetsConnection)
@@ -40,12 +44,24 @@ def load_data():
         if not required_cols.issubset(df.columns):
             st.error(f"データソースに必要なカラムが不足しています。必要: {required_cols}")
             return None
+        st.session_state.df = df
         return df
     except Exception as e:
         st.error(f"データの読み込みエラー: {e}")
         return None
 
 df = load_data()
+
+# --- バックグラウンド保存関数 ---
+def save_data_bg(df_to_save):
+    try:
+        if USE_GSHEETS and "connections" in st.secrets and "gsheets" in st.secrets.connections:
+            conn = st.connection("gsheets", type=GSheetsConnection)
+            conn.update(data=df_to_save)
+        else:
+            df_to_save.to_csv(CSV_FILE, index=False)
+    except Exception as e:
+        pass
 
 # --- 関数 ---
 def start_learning(target_df, num_q):
@@ -76,14 +92,10 @@ def update_mastery(word_id, action, current_mastery):
     idx = df[df["ID"] == word_id].index
     if not idx.empty:
         df.loc[idx, "Mastery"] = new_mastery
-        try:
-            if USE_GSHEETS and "connections" in st.secrets and "gsheets" in st.secrets.connections:
-                conn = st.connection("gsheets", type=GSheetsConnection)
-                conn.update(data=df)
-            else:
-                df.to_csv(CSV_FILE, index=False)
-        except Exception as e:
-            st.error(f"保存エラー: {e}")
+        st.session_state.df = df
+        
+        # バックグラウンドで非同期に保存処理を実行（UIをブロックしないため）
+        threading.Thread(target=save_data_bg, args=(df.copy(),)).start()
     
     st.session_state.current_idx += 1
     st.session_state.show_answer = False
