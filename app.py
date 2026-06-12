@@ -283,6 +283,20 @@ if not st.session_state.is_learning:
         st.caption("📁 データソース: ローカルCSVファイル")
 
 else:
+    if st.session_state.get("close_sidebar", False):
+        import streamlit.components.v1 as components
+        components.html("""
+        <script>
+            const btn1 = window.parent.document.querySelector('button[kind="headerNoPadding"]');
+            if (btn1) { btn1.click(); }
+            const btn2 = window.parent.document.querySelector('[data-testid="collapsedControl"]');
+            if (btn2) { btn2.click(); }
+            const btn3 = window.parent.document.querySelector('button[aria-label="Collapse sidebar"]');
+            if (btn3) { btn3.click(); }
+        </script>
+        """, height=0, width=0)
+        st.session_state.close_sidebar = False
+
     total_q = len(st.session_state.questions)
     curr_idx = st.session_state.current_idx
     
@@ -297,15 +311,44 @@ else:
         
         st.caption(f"🚀 進捗: **{curr_idx + 1} / {total_q}** 問目")
         st.progress((curr_idx) / total_q)
+        
+        # 前に戻るボタン
+        col_back, _ = st.columns([1, 4])
+        with col_back:
+            st.button("↩️ 前に戻る", use_container_width=True, on_click=go_back, disabled=(curr_idx == 0))
+            
         st.markdown("<br>", unsafe_allow_html=True)
+        
+        last_action = st.session_state.get("last_action", "start")
+        if last_action == "up":
+            anim_css = "animation: enterFromLeft 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;"
+        elif last_action == "keep":
+            anim_css = "animation: enterFromRight 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;"
+        elif last_action == "back":
+            anim_css = "animation: enterFromLeft 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;"
+        else:
+            anim_css = "animation: popIn 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;"
         
         # ポップな単語カードデザイン (タップで裏返るCSSアニメーション)
         css = f"""
         <style>
+        @keyframes enterFromRight {{
+            from {{ transform: translateX(100px); opacity: 0; }}
+            to {{ transform: translateX(0); opacity: 1; }}
+        }}
+        @keyframes enterFromLeft {{
+            from {{ transform: translateX(-100px); opacity: 0; }}
+            to {{ transform: translateX(0); opacity: 1; }}
+        }}
+        @keyframes popIn {{
+            from {{ transform: scale(0.9); opacity: 0; }}
+            to {{ transform: scale(1); opacity: 1; }}
+        }}
         .flip-card-container {{
             perspective: 1000px;
             width: 100%;
             margin-bottom: 20px;
+            {anim_css}
         }}
         .flip-card-inner {{
             position: relative;
