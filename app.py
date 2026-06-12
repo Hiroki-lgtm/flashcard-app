@@ -287,29 +287,86 @@ else:
         st.progress((curr_idx) / total_q)
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # ポップな単語カードデザイン
-        if not st.session_state.show_answer:
-            st.markdown(
-                f"<div style='background: linear-gradient(135deg, #6e8efb, #a777e3); padding: 50px; border-radius: 20px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); color: white; cursor: pointer;'>"
-                f"<h1 style='font-size: 4rem; margin: 0; word-wrap: break-word; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);'>{word_data['Word']}</h1>"
-                f"</div>", 
-                unsafe_allow_html=True
-            )
-            st.markdown("<br><br>", unsafe_allow_html=True)
-            if st.button("🔄 タップして裏返す", use_container_width=True, type="primary"):
-                st.session_state.show_answer = True
-                st.rerun()
-        else:
-            st.markdown(
-                f"<div style='background-color: #fff0f5; padding: 50px; border-radius: 20px; text-align: center; border: 3px dashed #ff6b6b; box-shadow: 0 8px 16px rgba(0,0,0,0.05);'>"
-                f"<h2 style='font-size: 3rem; margin: 0; color: #d63031; word-wrap: break-word;'>{word_data['Meaning']}</h2>"
-                f"</div>", 
-                unsafe_allow_html=True
-            )
-            st.markdown("<br><br>", unsafe_allow_html=True)
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                st.button("👈 もう一度", use_container_width=True, on_click=update_mastery, args=(word_data["ID"], "keep", word_data["Mastery"]))
-            with col2:
-                st.button("できた 👉", use_container_width=True, type="primary", on_click=update_mastery, args=(word_data["ID"], "up", word_data["Mastery"]))
+        # ポップな単語カードデザイン (タップで裏返るCSSアニメーション)
+        css = f"""
+        <style>
+        .flip-card-container {{
+            perspective: 1000px;
+            width: 100%;
+            margin-bottom: 20px;
+        }}
+        .flip-card-inner {{
+            position: relative;
+            width: 100%;
+            height: 300px;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }}
+        input[type=checkbox].flip-toggle {{
+            display: none;
+        }}
+        input[type=checkbox].flip-toggle:checked + .flip-card-inner {{
+            transform: rotateY(180deg);
+        }}
+        .flip-card-front, .flip-card-back {{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }}
+        .flip-card-front {{
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white;
+        }}
+        .flip-card-back {{
+            background-color: #fff0f5;
+            color: #d63031;
+            transform: rotateY(180deg);
+            border: 3px dashed #ff6b6b;
+            box-sizing: border-box;
+            padding: 20px;
+        }}
+        .flip-instruction {{
+            font-size: 0.9rem;
+            color: #888;
+            text-align: center;
+            margin-top: 10px;
+            display: block;
+        }}
+        </style>
+        """
+        
+        card_html = f"""
+        {css}
+        <div class="flip-card-container">
+            <label style="display:block; width:100%; height:100%; margin:0;">
+                <input type="checkbox" class="flip-toggle" id="flip_{curr_idx}">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <h1 style='font-size: 4rem; margin: 0; word-wrap: break-word; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);'>{word_data['Word']}</h1>
+                    </div>
+                    <div class="flip-card-back">
+                        <h2 style='font-size: 2.5rem; margin: 0; word-wrap: break-word;'>{word_data['Meaning']}</h2>
+                    </div>
+                </div>
+            </label>
+        </div>
+        <span class="flip-instruction">👆 カードをタップして何度でも裏返せます</span>
+        """
+        
+        st.markdown(card_html, unsafe_allow_html=True)
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.button("👈 もう一度", use_container_width=True, on_click=update_mastery, args=(word_data["ID"], "keep", word_data["Mastery"]))
+        with col2:
+            st.button("できた 👉", use_container_width=True, type="primary", on_click=update_mastery, args=(word_data["ID"], "up", word_data["Mastery"]))
