@@ -406,9 +406,12 @@ else:
         """
         
         # 単語が途中で改行されないよう、フォントサイズを動的調整しつつ word-break を keep-all に
+        # ReactによるDOM要素の再利用を防ぎ、毎回アニメーションと裏返り状態をリセットするためにタグを切り替える
+        container_tag = "div" if curr_idx % 2 == 0 else "section"
+        
         card_html = f"""
         {css}
-        <div class="flip-card-container">
+        <{container_tag} class="flip-card-container">
             <label style="display:block; width:100%; height:100%; margin:0;">
                 <input type="checkbox" class="flip-toggle" id="flip_{curr_idx}">
                 <div class="flip-card-inner">
@@ -420,13 +423,35 @@ else:
                     </div>
                 </div>
             </label>
+        </{container_tag}>
+        <div style="text-align: center; margin-top: 10px;">
+            <span class="flip-instruction" style="display: inline-block; margin: 0;">👆 タップして裏返す</span>
+            <span style="color: #ccc; margin: 0 10px;">|</span>
+            <span id="speaker-icon-{curr_idx}" style="cursor: pointer; font-size: 1.1rem; color: #6e8efb; font-weight: bold; padding: 5px 10px; border-radius: 5px; background: #f0f4ff;">🔊 発音を聴く</span>
         </div>
-        <span class="flip-instruction">タップして裏返す</span>
-        <!-- 強制的にチェックボックスを外すハック -->
-        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" onload="var cb=document.getElementById('flip_{curr_idx}'); if(cb) cb.checked=false;" style="display:none;">
         """
         
         st.markdown(card_html, unsafe_allow_html=True)
+        
+        # 音声発音用のJSを親フレームに注入
+        import json
+        import streamlit.components.v1 as components
+        word_js = json.dumps(word_data['Word'])
+        components.html(f"""
+        <script>
+            var parentDoc = window.parent.document;
+            var speakerBtn = parentDoc.getElementById('speaker-icon-{curr_idx}');
+            if (speakerBtn && !speakerBtn.hasAttribute('data-has-listener')) {{
+                speakerBtn.setAttribute('data-has-listener', 'true');
+                speakerBtn.onclick = function() {{
+                    var msg = new SpeechSynthesisUtterance({word_js});
+                    msg.lang = 'en-US';
+                    window.speechSynthesis.speak(msg);
+                }};
+            }}
+        </script>
+        """, height=0, width=0)
+        
         st.markdown("<br><br>", unsafe_allow_html=True)
         
         col1, col2 = st.columns(2)
