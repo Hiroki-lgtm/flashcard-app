@@ -596,46 +596,23 @@ else:
         word_js = json.dumps(word_data['Word'])
         components.html(f"""
         <script>
-            var win = window.parent;
-            var parentDoc = win.document;
-            
-            // ページロード時に音声をあらかじめ取得しておく（非同期読み込み対策）
-            if (typeof win.voicesLoaded === 'undefined') {{
-                win.voicesLoaded = false;
-                win.englishVoices = [];
-                win.updateVoices = function() {{
-                    var vcs = win.speechSynthesis.getVoices();
-                    if (vcs.length > 0) {{
-                        win.englishVoices = vcs.filter(function(v) {{ return v.lang.startsWith('en'); }});
-                        win.voicesLoaded = true;
-                    }}
-                }};
-                win.updateVoices();
-                if (win.speechSynthesis.onvoiceschanged !== undefined) {{
-                    win.speechSynthesis.onvoiceschanged = win.updateVoices;
-                }}
-            }}
-
+            var parentDoc = window.parent.document;
             var speakerBtn = parentDoc.getElementById('speaker-icon-{curr_idx}');
             if (speakerBtn && !speakerBtn.hasAttribute('data-has-listener')) {{
                 speakerBtn.setAttribute('data-has-listener', 'true');
                 speakerBtn.onclick = function() {{
-                    win.speechSynthesis.cancel(); // 前の音声をキャンセルして即座に再生
-                    var msg = new SpeechSynthesisUtterance({word_js});
-                    msg.lang = 'en-US';
-                    msg.rate = 0.85; // さらに少し遅くして聞き取りやすく
-                    
-                    if (win.englishVoices.length > 0) {{
-                        // 高品質なネイティブ音声（Google, Samantha, Alex等）を優先
-                        var preferredVoice = win.englishVoices.find(function(v) {{
-                            return v.name.indexOf('Google') !== -1 || 
-                                   v.name.indexOf('Samantha') !== -1 || 
-                                   v.name.indexOf('Alex') !== -1 || 
-                                   v.name.indexOf('Daniel') !== -1;
-                        }});
-                        msg.voice = preferredVoice || win.englishVoices[0];
-                    }}
-                    win.speechSynthesis.speak(msg);
+                    // 機械音声特有の不自然さや、速度変更による歪み（気持ち悪さ）を完全に排除するため、
+                    // 人間の肉声が録音された高品質な辞書音声API（アメリカ英語）を利用してMP3を再生する
+                    var text = encodeURIComponent({word_js});
+                    var url = "https://dict.youdao.com/dictvoice?audio=" + text + "&type=2";
+                    var audio = new Audio(url);
+                    audio.play().catch(function(e) {{
+                        // 万が一ネットワーク等の理由で再生できなかった場合のフォールバック（自然な標準速度）
+                        var msg = new SpeechSynthesisUtterance({word_js});
+                        msg.lang = 'en-US';
+                        msg.rate = 1.0;
+                        window.speechSynthesis.speak(msg);
+                    }});
                 }};
             }}
             
