@@ -7,6 +7,80 @@ import threading
 # --- 設定 ---
 st.set_page_config(page_title="Flashcards", page_icon="📚", layout="centered")
 
+# --- 全体UIのCSSポリッシュ ---
+st.markdown("""
+<style>
+/* スマホでのサイドバー開閉ボタン（＞）を大きく、色付きにして目立たせる */
+[data-testid="collapsedControl"] {
+    transform: scale(1.5) !important;
+    transform-origin: top left !important;
+    background-color: #6e8efb !important;
+    color: white !important;
+    border-radius: 0 0 15px 0 !important;
+    padding: 5px !important;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.3) !important;
+    z-index: 999999 !important;
+    transition: all 0.2s ease;
+}
+[data-testid="collapsedControl"]:hover {
+    transform: scale(1.6) !important;
+}
+
+/* StreamlitのSVGアイコンを白にする */
+[data-testid="collapsedControl"] svg {
+    fill: white !important;
+    color: white !important;
+}
+
+/* プライマリボタン（スタート、できた等）のグラデーションとホバー時の浮き上がり */
+div.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #ff6b6b, #ff4757) !important;
+    border: none !important;
+    box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4) !important;
+    transition: all 0.2s ease-in-out !important;
+    border-radius: 12px !important;
+}
+div.stButton > button[kind="primary"]:hover {
+    background: linear-gradient(135deg, #ff4757, #ff6b6b) !important;
+    box-shadow: 0 6px 15px rgba(255, 107, 107, 0.6) !important;
+    transform: translateY(-2px) !important;
+}
+div.stButton > button[kind="primary"]:active {
+    transform: scale(0.95) !important;
+}
+
+/* セカンダリボタン（もう一度、前に戻る等）のホバーエフェクト */
+div.stButton > button[kind="secondary"] {
+    border-radius: 12px !important;
+    transition: all 0.2s ease-in-out !important;
+}
+div.stButton > button[kind="secondary"]:hover {
+    border-color: #6e8efb !important;
+    color: #6e8efb !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 10px rgba(110, 142, 251, 0.2) !important;
+}
+div.stButton > button[kind="secondary"]:active {
+    transform: scale(0.95) !important;
+}
+
+/* プログレスバーを太く、ポップなグラデーションに */
+.stProgress > div > div > div {
+    border-radius: 10px !important;
+    background: linear-gradient(90deg, #6e8efb, #a777e3) !important;
+}
+
+/* 発音ボタンのホバーエフェクト */
+span[id^="speaker-icon"]:hover {
+    transform: scale(1.1);
+    background: #dbe4ff !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
 # --- データ接続の設定 ---
 try:
     from streamlit_gsheets import GSheetsConnection
