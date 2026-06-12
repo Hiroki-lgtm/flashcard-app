@@ -22,6 +22,8 @@ def init_session():
     st.session_state.current_idx = 0
     st.session_state.show_answer = False
     st.session_state.is_learning = False
+    st.session_state.last_action = "start"
+    st.session_state.close_sidebar = False
 
 if "is_learning" not in st.session_state:
     init_session()
@@ -76,6 +78,14 @@ def start_learning(target_df, num_q):
     st.session_state.current_idx = 0
     st.session_state.show_answer = False
     st.session_state.is_learning = True
+    st.session_state.last_action = "start"
+    st.session_state.close_sidebar = True
+
+def go_back():
+    if st.session_state.current_idx > 0:
+        st.session_state.current_idx -= 1
+        st.session_state.show_answer = False
+        st.session_state.last_action = "back"
 
 def update_mastery(word_id, action, current_mastery):
     mastery_levels = ["D", "C", "B", "A"]
@@ -99,6 +109,7 @@ def update_mastery(word_id, action, current_mastery):
     
     st.session_state.current_idx += 1
     st.session_state.show_answer = False
+    st.session_state.last_action = action
 
 def generate_html_export(target_df, num_questions):
     export_df = target_df.sample(frac=1).head(num_questions)
