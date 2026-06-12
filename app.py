@@ -221,16 +221,44 @@ with st.sidebar:
 
 # --- メインエリア (フラッシュカード) ---
 if not st.session_state.is_learning:
-    st.title("📚 英単語フラッシュカード")
+    st.markdown("<h1 style='text-align: center; color: #FF4B4B; font-size: 3rem;'>✨ Antigravity Flashcards ✨</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; font-size: 1.2rem; color: #555;'>サクサク覚えて、目指せスコアアップ！🚀</p>", unsafe_allow_html=True)
+    st.markdown("---")
     
-    if USE_GSHEETS and "connections" in st.secrets and "gsheets" in st.secrets.connections:
-        st.success("☁️ Googleスプレッドシートと連携しています")
-    else:
-        st.info("📁 ローカルのCSVファイルで動作しています")
-
-    st.write("👈 サイドバーから出題条件を設定し、「学習をスタート」ボタンを押してください。")
     if df is not None:
-        st.write(f"現在の単語登録数: **{len(df)}** 語")
+        total_words = len(df)
+        mastery_counts = df["Mastery"].value_counts()
+        count_A = mastery_counts.get("A", 0)
+        count_B = mastery_counts.get("B", 0)
+        count_C = mastery_counts.get("C", 0)
+        count_D = mastery_counts.get("D", 0)
+        
+        mastered = count_A + count_B
+        progress_pct = int((mastered / total_words) * 100) if total_words > 0 else 0
+        
+        st.markdown("### 📊 現在の学習ダッシュボード")
+        
+        st.markdown(f"**マスター率 (A + B): <span style='color: #4CAF50; font-size: 1.2rem;'>{progress_pct}%</span>**", unsafe_allow_html=True)
+        st.progress(progress_pct / 100.0)
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("🟦 A (完璧)", f"{count_A} 語")
+        col2.metric("🟩 B (だいたい)", f"{count_B} 語")
+        col3.metric("🟨 C (うろ覚え)", f"{count_C} 語")
+        col4.metric("🟥 D (ダメ)", f"{count_D} 語")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.info("💡 **使い方:** 左のサイドバー（⚙️ 学習設定）から学習する条件を選んで、**「🚀 学習をスタート」**を押してください！")
+    else:
+        st.warning("データが見つかりません。")
+
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    if USE_GSHEETS and "connections" in st.secrets and "gsheets" in st.secrets.connections:
+        st.caption("☁️ データソース: Googleスプレッドシート連携中")
+    else:
+        st.caption("📁 データソース: ローカルCSVファイル")
+
 else:
     total_q = len(st.session_state.questions)
     curr_idx = st.session_state.current_idx
@@ -238,18 +266,21 @@ else:
     if curr_idx >= total_q:
         st.success("🎉 学習完了！ お疲れ様でした！")
         st.balloons()
-        if st.button("🔄 設定し直して再スタート", use_container_width=True):
+        if st.button("🔄 設定し直して再スタート", use_container_width=True, type="primary"):
             init_session()
             st.rerun()
     else:
         word_data = st.session_state.questions[curr_idx]
         
-        st.caption(f"進捗: **{curr_idx + 1} / {total_q}** 問目")
+        st.caption(f"🚀 進捗: **{curr_idx + 1} / {total_q}** 問目")
         st.progress((curr_idx) / total_q)
         st.markdown("<br>", unsafe_allow_html=True)
         
+        # ポップな単語カードデザイン
         st.markdown(
-            f"<h1 style='text-align: center; font-size: 3.5rem; word-wrap: break-word;'>{word_data['Word']}</h1>", 
+            f"<div style='background: linear-gradient(135deg, #6e8efb, #a777e3); padding: 50px; border-radius: 20px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); color: white;'>"
+            f"<h1 style='font-size: 4rem; margin: 0; word-wrap: break-word; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);'>{word_data['Word']}</h1>"
+            f"</div>", 
             unsafe_allow_html=True
         )
         st.markdown("<br><br>", unsafe_allow_html=True)
@@ -260,11 +291,13 @@ else:
                 st.rerun()
         else:
             st.markdown(
-                f"<h2 style='text-align: center; font-size: 2.2rem; color: #ff4b4b; word-wrap: break-word;'>{word_data['Meaning']}</h2>", 
+                f"<div style='background-color: #fff0f5; padding: 40px; border-radius: 20px; text-align: center; border: 3px dashed #ff6b6b; box-shadow: 0 8px 16px rgba(0,0,0,0.05);'>"
+                f"<h2 style='font-size: 2.5rem; margin: 0; color: #d63031; word-wrap: break-word;'>{word_data['Meaning']}</h2>"
+                f"</div>", 
                 unsafe_allow_html=True
             )
-            st.markdown("<hr>", unsafe_allow_html=True)
-            st.write("**この単語の定着度はどうでしたか？**")
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.write("🎯 **この単語の定着度はどうでしたか？**")
             
             col1, col2, col3, col4 = st.columns(4)
             with col1:
