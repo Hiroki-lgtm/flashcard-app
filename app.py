@@ -5,7 +5,7 @@ import os
 import threading
 
 # --- 設定 ---
-st.set_page_config(page_title="Antigravity Flashcards", page_icon="📚", layout="centered")
+st.set_page_config(page_title="Flashcards", page_icon="📚", layout="centered")
 
 # --- データ接続の設定 ---
 try:
@@ -287,7 +287,7 @@ else:
     curr_idx = st.session_state.current_idx
     
     if curr_idx >= total_q:
-        st.success("🎉 学習完了！ お疲れ様でした！")
+        st.success("学習完了！")
         st.balloons()
         if st.button("🔄 設定し直して再スタート", use_container_width=True, type="primary"):
             init_session()
@@ -371,7 +371,7 @@ else:
                 </div>
             </label>
         </div>
-        <span class="flip-instruction">👆 カードをタップして何度でも裏返せます</span>
+        <span class="flip-instruction">タップして裏返す</span>
         """
         
         st.markdown(card_html, unsafe_allow_html=True)
