@@ -32,7 +32,8 @@ st.markdown("""
     -webkit-backdrop-filter: blur(16px) !important;
     border-radius: 24px !important;
     padding: 2rem !important;
-    margin: 2rem auto !important;
+    /* ヘッダーとの被りを防ぐため上部マージンを確保 */
+    margin: 5rem auto 2rem auto !important;
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1) !important;
     border: 1px solid rgba(255, 255, 255, 0.8) !important;
     max-width: 90% !important;
@@ -41,46 +42,51 @@ st.markdown("""
 @media (max-width: 768px) {
     [data-testid="stMainBlockContainer"] {
         padding: 1.5rem 1rem !important;
-        margin: 1rem auto !important;
+        /* スマホでも上部の被りを防ぐ */
+        margin: 4rem auto 1rem auto !important;
         border-radius: 16px !important;
         max-width: 95% !important;
     }
 }
 
-/* ヘッダー全体（サイドバー展開ボタンやGitHubアイコンがある行）を別色（濃い青系）にして引き締める */
+/* ヘッダー全体（サイドバー展開ボタンやGitHubアイコンがある行）を透明ですりガラス風に戻す */
 [data-testid="stHeader"] {
-    background: linear-gradient(90deg, #1E293B, #334155) !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+    background: rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+    box-shadow: none !important;
 }
 
 /* サイドバーを半透明のすりガラス風にする */
 [data-testid="stSidebar"] {
-    background: rgba(255, 255, 255, 0.7) !important;
+    background: rgba(255, 255, 255, 0.85) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     border-right: 1px solid rgba(255, 255, 255, 0.5) !important;
 }
 
-/* ヘッダー内のアイコン類の色を白にする */
+/* ヘッダー内のアイコン類の色をダークグレーにする（白背景で見えるように） */
 [data-testid="stHeader"] svg {
-    fill: white !important;
-    color: white !important;
+    fill: #334155 !important;
+    color: #334155 !important;
 }
 
-/* スマホでのサイドバー開閉ボタン（＞） */
+/* スマホでのサイドバー開閉ボタン（＞）を丸い独立したボタンにして常に目立たせる */
 [data-testid="collapsedControl"] {
-    transform: scale(1.5) !important;
-    transform-origin: top left !important;
-    background-color: transparent !important;
-    color: white !important;
-    border-radius: 0 !important;
-    padding: 5px !important;
-    box-shadow: none !important;
+    transform: scale(1.3) !important;
+    transform-origin: center !important;
+    background-color: #e2e8f0 !important;
+    color: #334155 !important;
+    border-radius: 50% !important;
+    padding: 6px !important;
+    margin: 10px !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
     z-index: 999999 !important;
     transition: all 0.2s ease;
 }
 [data-testid="collapsedControl"]:hover {
-    transform: scale(1.6) !important;
+    transform: scale(1.4) !important;
+    background-color: #cbd5e1 !important;
 }
 
 /* プライマリボタン（スタート、できた等）のグラデーションとホバー時の浮き上がり */
@@ -115,10 +121,14 @@ div.stButton > button[kind="secondary"]:active {
     transform: scale(0.95) !important;
 }
 
-/* プログレスバーを太く、ポップなグラデーションに */
+/* プログレスバーを白背景でも見えやすくする */
+.stProgress > div {
+    background-color: #cbd5e1 !important; /* 未完了部分をはっきりしたグレーに */
+    border-radius: 10px !important;
+}
 .stProgress > div > div > div {
     border-radius: 10px !important;
-    background: linear-gradient(90deg, #6e8efb, #a777e3) !important;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6) !important; /* 濃い青〜紫のグラデーションでコントラスト強化 */
 }
 
 /* 発音ボタンのホバーエフェクト */
