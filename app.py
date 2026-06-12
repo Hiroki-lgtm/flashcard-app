@@ -123,7 +123,7 @@ def generate_html_export(target_df, num_questions):
         html_content += f"""
                 <tr>
                     <td class="left-side">
-                        <span class="word">{row['Word']}</span>
+                        <span class="word"><small style="color: #777; font-size: 0.75em; margin-right: 8px;">[{row['ID']}]</small>{row['Word']}</span>
                         <span class="answer-box"></span>
                     </td>
                     <td class="right-side">
