@@ -12,7 +12,8 @@ st.markdown("""
 <style>
 /* --- プレミアムな背景アニメーションとグラスモーフィズム --- */
 [data-testid="stAppViewContainer"] {
-    background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb) !important;
+    /* 視認性を高めるため、クリーンでクールなシルバー系・アイスブルー系の背景グラデーション */
+    background: linear-gradient(-45deg, #e6e9f0, #eef1f5, #d5d9e5, #e0e5ec) !important;
     background-size: 400% 400% !important;
     animation: gradientBG 15s ease infinite !important;
 }
@@ -25,14 +26,15 @@ st.markdown("""
 
 /* メインコンテンツをすりガラス風のカードにする */
 [data-testid="stMainBlockContainer"] {
-    background: rgba(255, 255, 255, 0.5) !important;
+    /* 文字が見えやすいように少し白を強めに */
+    background: rgba(255, 255, 255, 0.75) !important;
     backdrop-filter: blur(16px) !important;
     -webkit-backdrop-filter: blur(16px) !important;
     border-radius: 24px !important;
     padding: 2rem !important;
     margin: 2rem auto !important;
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
     max-width: 90% !important;
 }
 
@@ -45,9 +47,10 @@ st.markdown("""
     }
 }
 
-/* ヘッダー全体（サイドバー展開ボタンやGitHubアイコンがある行）を透明にして背景を活かす */
+/* ヘッダー全体（サイドバー展開ボタンやGitHubアイコンがある行）を別色（濃い青系）にして引き締める */
 [data-testid="stHeader"] {
-    background: transparent !important;
+    background: linear-gradient(90deg, #1E293B, #334155) !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
 }
 
 /* サイドバーを半透明のすりガラス風にする */
