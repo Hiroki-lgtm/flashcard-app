@@ -416,10 +416,10 @@ else:
                 <input type="checkbox" class="flip-toggle" id="flip_{curr_idx}">
                 <div class="flip-card-inner">
                     <div class="flip-card-front">
-                        <h1 style='font-size: clamp(2rem, 8vw, 4rem); margin: 0; word-break: keep-all; overflow-wrap: normal; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); padding: 0 20px;'>{word_data['Word']}</h1>
+                        <h1 style='font-size: clamp(2.5rem, 10vw, 5rem); margin: 0; word-break: keep-all; overflow-wrap: normal; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); padding: 0 20px;'>{word_data['Word']}</h1>
                     </div>
                     <div class="flip-card-back">
-                        <h2 style='font-size: clamp(1.5rem, 6vw, 2.5rem); margin: 0; word-break: keep-all; overflow-wrap: normal; padding: 0 20px;'>{word_data['Meaning']}</h2>
+                        <h2 style='font-size: clamp(1.5rem, 6vw, 2.5rem); margin: 0; word-break: normal; overflow-wrap: break-word; padding: 0 20px;'>{word_data['Meaning']}</h2>
                     </div>
                 </div>
             </label>
@@ -449,6 +449,15 @@ else:
                     window.speechSynthesis.speak(msg);
                 }};
             }}
+            
+            // スマホでのページ拡大縮小（ズーム）を禁止
+            var meta = parentDoc.querySelector('meta[name="viewport"]');
+            if (!meta) {{
+                meta = parentDoc.createElement('meta');
+                meta.name = "viewport";
+                parentDoc.head.appendChild(meta);
+            }}
+            meta.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no";
         </script>
         """, height=0, width=0)
         
@@ -461,4 +470,10 @@ else:
             st.button("できた 👉", use_container_width=True, type="primary", on_click=update_mastery, args=(word_data["ID"], "up", word_data["Mastery"]))
             
         st.markdown("<br>", unsafe_allow_html=True)
-        st.button("↩️ 前に戻る", use_container_width=True, on_click=go_back, disabled=(curr_idx == 0))
+        col_bottom1, col_bottom2 = st.columns(2)
+        with col_bottom1:
+            st.button("↩️ 前に戻る", use_container_width=True, on_click=go_back, disabled=(curr_idx == 0))
+        with col_bottom2:
+            if st.button("🏠 ホームに戻る", use_container_width=True):
+                init_session()
+                st.rerun()
