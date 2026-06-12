@@ -10,9 +10,52 @@ st.set_page_config(page_title="Flashcards", page_icon="📚", layout="centered")
 # --- 全体UIのCSSポリッシュ ---
 st.markdown("""
 <style>
-/* ヘッダー全体（サイドバー展開ボタンやGitHubアイコンがある行）の色を変更 */
+/* --- プレミアムな背景アニメーションとグラスモーフィズム --- */
+[data-testid="stAppViewContainer"] {
+    background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb) !important;
+    background-size: 400% 400% !important;
+    animation: gradientBG 15s ease infinite !important;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* メインコンテンツをすりガラス風のカードにする */
+[data-testid="stMainBlockContainer"] {
+    background: rgba(255, 255, 255, 0.5) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-radius: 24px !important;
+    padding: 2rem !important;
+    margin: 2rem auto !important;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    max-width: 90% !important;
+}
+
+@media (max-width: 768px) {
+    [data-testid="stMainBlockContainer"] {
+        padding: 1.5rem 1rem !important;
+        margin: 1rem auto !important;
+        border-radius: 16px !important;
+        max-width: 95% !important;
+    }
+}
+
+/* ヘッダー全体（サイドバー展開ボタンやGitHubアイコンがある行）を透明にして背景を活かす */
 [data-testid="stHeader"] {
-    background: linear-gradient(90deg, #6e8efb, #a777e3) !important;
+    background: transparent !important;
+}
+
+/* サイドバーを半透明のすりガラス風にする */
+[data-testid="stSidebar"] {
+    background: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.5) !important;
 }
 
 /* ヘッダー内のアイコン類の色を白にする */
