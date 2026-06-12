@@ -596,21 +596,46 @@ else:
         word_js = json.dumps(word_data['Word'])
         components.html(f"""
         <script>
-            var parentDoc = window.parent.document;
+            var win = window.parent;
+            var parentDoc = win.document;
+            
+            // ページロード時に音声をあらかじめ取得しておく（非同期読み込み対策）
+            if (typeof win.voicesLoaded === 'undefined') {{
+                win.voicesLoaded = false;
+                win.englishVoices = [];
+                win.updateVoices = function() {{
+                    var vcs = win.speechSynthesis.getVoices();
+                    if (vcs.length > 0) {{
+                        win.englishVoices = vcs.filter(function(v) {{ return v.lang.startsWith('en'); }});
+                        win.voicesLoaded = true;
+                    }}
+                }};
+                win.updateVoices();
+                if (win.speechSynthesis.onvoiceschanged !== undefined) {{
+                    win.speechSynthesis.onvoiceschanged = win.updateVoices;
+                }}
+            }}
+
             var speakerBtn = parentDoc.getElementById('speaker-icon-{curr_idx}');
             if (speakerBtn && !speakerBtn.hasAttribute('data-has-listener')) {{
                 speakerBtn.setAttribute('data-has-listener', 'true');
                 speakerBtn.onclick = function() {{
-                    // ブラウザ内蔵の音声合成は端末によって品質が低いため、高品質なGoogle TTSエンドポイントを使用する
-                    var text = encodeURIComponent({word_js});
-                    var url = "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en-US&q=" + text;
-                    var audio = new Audio(url);
-                    audio.play().catch(function(e) {{
-                        // 万が一ネットワーク等で再生に失敗した場合のフォールバック
-                        var msg = new SpeechSynthesisUtterance({word_js});
-                        msg.lang = 'en-US';
-                        window.speechSynthesis.speak(msg);
-                    }});
+                    win.speechSynthesis.cancel(); // 前の音声をキャンセルして即座に再生
+                    var msg = new SpeechSynthesisUtterance({word_js});
+                    msg.lang = 'en-US';
+                    msg.rate = 0.85; // さらに少し遅くして聞き取りやすく
+                    
+                    if (win.englishVoices.length > 0) {{
+                        // 高品質なネイティブ音声（Google, Samantha, Alex等）を優先
+                        var preferredVoice = win.englishVoices.find(function(v) {{
+                            return v.name.indexOf('Google') !== -1 || 
+                                   v.name.indexOf('Samantha') !== -1 || 
+                                   v.name.indexOf('Alex') !== -1 || 
+                                   v.name.indexOf('Daniel') !== -1;
+                        }});
+                        msg.voice = preferredVoice || win.englishVoices[0];
+                    }}
+                    win.speechSynthesis.speak(msg);
                 }};
             }}
             
