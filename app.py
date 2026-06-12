@@ -77,21 +77,29 @@ def update_mastery(word_id, new_mastery):
     st.session_state.current_idx += 1
     st.session_state.show_answer = False
 
-def generate_html_export(target_df):
+def generate_html_export(target_df, num_questions):
+    export_df = target_df.sample(frac=1).head(num_questions)
+    
     # PDF出力用のHTML文字列を生成
     html_content = """
     <!DOCTYPE html>
     <html lang="ja">
     <head>
         <meta charset="UTF-8">
-        <title>単語リスト</title>
+        <title>単語テスト</title>
         <style>
             body { font-family: sans-serif; margin: 20px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; table-layout: fixed; }
+            th, td { padding: 15px; text-align: left; border-bottom: 1px solid #ddd; }
             th { background-color: #f2f2f2; }
+            .left-side { width: 50%; border-right: 2px dashed #000; }
+            .right-side { width: 50%; padding-left: 20px; }
+            .word { font-size: 1.2em; font-weight: bold; display: inline-block; width: 45%; }
+            .answer-box { display: inline-block; width: 50%; border-bottom: 1px solid #333; height: 1.5em; vertical-align: bottom; }
             @media print {
                 .no-print { display: none; }
+                table { page-break-inside: auto; }
+                tr { page-break-inside: avoid; page-break-after: auto; }
             }
         </style>
     </head>
@@ -101,13 +109,29 @@ def generate_html_export(target_df):
             下のボタンを押すと印刷画面が開きます。送信先（プリンター）を「PDFに保存」に変更して「保存」を押してください。<br>
             <button onclick="window.print()" style="margin-top: 15px; padding: 10px 20px; cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 5px; font-weight: bold;">🖨️ PDF保存 / 印刷画面を開く</button>
         </div>
-        <h2>📚 指定範囲の単語リスト</h2>
+        <h2>📚 単語テスト (""" + str(num_questions) + """問)</h2>
         <table>
-            <tr><th>ID</th><th>英単語 (Word)</th><th>意味 (Meaning)</th><th>Rank</th><th>Mastery</th></tr>
+            <thead>
+                <tr>
+                    <th class="left-side">問題 (ここを谷折り 👉)</th>
+                    <th class="right-side">答え</th>
+                </tr>
+            </thead>
+            <tbody>
     """
-    for _, row in target_df.iterrows():
-        html_content += f"<tr><td>{row['ID']}</td><td><strong>{row['Word']}</strong></td><td>{row['Meaning']}</td><td>{row['Rank']}</td><td>{row['Mastery']}</td></tr>"
+    for _, row in export_df.iterrows():
+        html_content += f"""
+                <tr>
+                    <td class="left-side">
+                        <span class="word">{row['Word']}</span>
+                        <span class="answer-box"></span>
+                    </td>
+                    <td class="right-side">
+                        {row['Meaning']}
+                    </td>
+                </tr>"""
     html_content += """
+            </tbody>
         </table>
     </body>
     </html>
@@ -180,7 +204,7 @@ with st.sidebar:
             st.markdown("<br>", unsafe_allow_html=True)
             
             # HTML出力（PDF用）ボタン
-            html_string = generate_html_export(target_df)
+            html_string = generate_html_export(target_df, num_questions)
             st.download_button(
                 label="📄 この範囲のリストを保存 (PDF用)",
                 data=html_string,
