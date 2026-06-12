@@ -244,8 +244,8 @@ with st.sidebar:
 
 # --- メインエリア (フラッシュカード) ---
 if not st.session_state.is_learning:
-    st.markdown("<h1 style='text-align: center; color: #FF4B4B; font-size: 3rem;'>✨ Antigravity Flashcards ✨</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; font-size: 1.2rem; color: #555;'>サクサク覚えて、目指せスコアアップ！🚀</p>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; color: #FF4B4B; font-size: 3rem;'>TOEFL iBT 3800</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; font-size: 1.2rem; color: #555;'>目指せスコアアップ！🚀</p>", unsafe_allow_html=True)
     st.markdown("---")
     
     if df is not None:
