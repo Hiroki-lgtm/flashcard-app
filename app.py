@@ -221,7 +221,7 @@ def generate_html_export(target_df, num_questions):
         <table>
             <thead>
                 <tr>
-                    <th class="left-side">問題 (ここを谷折り 👉)</th>
+                    <th class="left-side">問題</th>
                     <th class="right-side">答え</th>
                 </tr>
             </thead>
@@ -302,7 +302,6 @@ with st.sidebar:
         ]
         
         if not target_df.empty:
-            st.info(f"対象の単語数: **{len(target_df)}** 語")
             max_q = min(200, len(target_df))
             num_questions = st.number_input("今回の出題数 (最大200)", min_value=1, max_value=max_q, value=min(20, max_q))
             
@@ -320,7 +319,32 @@ with st.sidebar:
                 mime="text/html",
                 use_container_width=True
             )
-            st.caption("※ダウンロードしたファイルを開き、**「印刷 → PDFに保存」**を選ぶことで綺麗なPDFとして保存できます。")
+            
+            # フローティング「メニューを開く」ボタン（非学習時のみ表示）
+            import streamlit.components.v1 as components
+            components.html("""
+            <script>
+                var parentDoc = window.parent.document;
+                var btn = parentDoc.getElementById('custom-sidebar-fab');
+                if (!btn) {
+                    btn = parentDoc.createElement('button');
+                    btn.id = 'custom-sidebar-fab';
+                    btn.innerHTML = '⚙️ メニューを開く';
+                    btn.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 999999; font-size: 16px; padding: 12px 20px; border-radius: 30px; background: linear-gradient(135deg, #6e8efb, #a777e3); color: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-weight: bold; cursor: pointer; transition: all 0.2s ease;';
+                    
+                    btn.onmouseover = function() { btn.style.transform = 'scale(1.05)'; };
+                    btn.onmouseout = function() { btn.style.transform = 'scale(1)'; };
+                    
+                    btn.onclick = function() {
+                        var sidebarBtn = parentDoc.querySelector('[data-testid="collapsedControl"]');
+                        if (sidebarBtn) sidebarBtn.click();
+                    };
+                    parentDoc.body.appendChild(btn);
+                }
+                btn.style.display = 'block'; // Ensure it's visible
+            </script>
+            """, height=0, width=0)
+            
         else:
             st.warning("条件に合致する単語がありません。")
             
@@ -378,6 +402,9 @@ else:
             if (btn2) { btn2.click(); }
             const btn3 = window.parent.document.querySelector('button[aria-label="Collapse sidebar"]');
             if (btn3) { btn3.click(); }
+            
+            var fab = window.parent.document.getElementById('custom-sidebar-fab');
+            if (fab) fab.style.display = 'none';
         </script>
         """, height=0, width=0)
         st.session_state.close_sidebar = False
