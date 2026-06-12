@@ -601,21 +601,16 @@ else:
             if (speakerBtn && !speakerBtn.hasAttribute('data-has-listener')) {{
                 speakerBtn.setAttribute('data-has-listener', 'true');
                 speakerBtn.onclick = function() {{
-                    var msg = new SpeechSynthesisUtterance({word_js});
-                    msg.lang = 'en-US';
-                    msg.rate = 0.9; // 単語学習用に少しだけゆっくりはっきり発音させる
-                    
-                    // 利用可能な音声リストから高品質なネイティブ英語音声を優先して選ぶ
-                    var voices = window.speechSynthesis.getVoices();
-                    var englishVoices = voices.filter(function(v) {{ return v.lang.startsWith('en'); }});
-                    if (englishVoices.length > 0) {{
-                        var preferredVoice = englishVoices.find(function(v) {{
-                            return v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Alex') || v.name.includes('Daniel');
-                        }});
-                        msg.voice = preferredVoice || englishVoices[0];
-                    }}
-                    
-                    window.speechSynthesis.speak(msg);
+                    // ブラウザ内蔵の音声合成は端末によって品質が低いため、高品質なGoogle TTSエンドポイントを使用する
+                    var text = encodeURIComponent({word_js});
+                    var url = "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en-US&q=" + text;
+                    var audio = new Audio(url);
+                    audio.play().catch(function(e) {{
+                        // 万が一ネットワーク等で再生に失敗した場合のフォールバック
+                        var msg = new SpeechSynthesisUtterance({word_js});
+                        msg.lang = 'en-US';
+                        window.speechSynthesis.speak(msg);
+                    }});
                 }};
             }}
             
