@@ -428,12 +428,12 @@ if not st.session_state.is_learning:
         count_C = mastery_counts.get("C", 0)
         count_D = mastery_counts.get("D", 0)
         
-        mastered = count_A + count_B
+        mastered = count_A
         progress_pct = int((mastered / total_words) * 100) if total_words > 0 else 0
         
         st.markdown("### 📊 現在の学習ダッシュボード")
         
-        st.markdown(f"**マスター率 (A + B): <span style='color: #4CAF50; font-size: 1.2rem;'>{progress_pct}%</span>**", unsafe_allow_html=True)
+        st.markdown(f"**マスター率 (A): <span style='color: #4CAF50; font-size: 1.2rem;'>{progress_pct}%</span>**", unsafe_allow_html=True)
         st.progress(progress_pct / 100.0)
         st.markdown("<br>", unsafe_allow_html=True)
         
