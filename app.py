@@ -265,6 +265,10 @@ def update_mastery(word_id, action, current_mastery):
         # バックグラウンドで非同期に保存処理を実行（UIをブロックしないため）
         threading.Thread(target=save_data_bg, args=(df.copy(),)).start()
     
+    # 今回の学習での結果を記録
+    if st.session_state.current_idx < len(st.session_state.questions):
+        st.session_state.questions[st.session_state.current_idx]["session_result"] = action
+    
     st.session_state.current_idx += 1
     st.session_state.show_answer = False
     st.session_state.last_action = action
@@ -469,8 +473,30 @@ else:
     curr_idx = st.session_state.current_idx
     
     if curr_idx >= total_q:
-        st.success("学習完了！")
+        st.success("🎉 学習完了！お疲れ様でした！")
         st.balloons()
+        
+        st.markdown("### 📝 今回の学習結果")
+        results_data = []
+        for q in st.session_state.questions:
+            res = q.get("session_result", "未回答")
+            mark = "✅ できた" if res == "up" else ("🔄 もう一度" if res == "keep" else "未回答")
+            results_data.append({
+                "単語": q["Word"],
+                "意味": q["Meaning"],
+                "結果": mark
+            })
+        
+        if results_data:
+            # Pandasのスタイルを使って表示を調整
+            df_res = pd.DataFrame(results_data)
+            st.dataframe(
+                df_res,
+                use_container_width=True,
+                hide_index=True
+            )
+            
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🔄 設定し直して再スタート", use_container_width=True, type="primary"):
             init_session()
             st.rerun()
