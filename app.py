@@ -182,6 +182,7 @@ def init_session():
     st.session_state.is_learning = False
     st.session_state.last_action = "start"
     st.session_state.close_sidebar = False
+    st.session_state.show_detailed_stats = False
 
 if "is_learning" not in st.session_state:
     init_session()
@@ -416,38 +417,65 @@ with st.sidebar:
 
 # --- メインエリア (フラッシュカード) ---
 if not st.session_state.is_learning:
-    st.markdown("<h1 style='text-align: center; color: #FF4B4B; font-size: 3rem;'>TOEFL iBT 3800</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; font-size: 1.2rem; color: #555;'>目指せスコアアップ！🚀</p>", unsafe_allow_html=True)
-    st.markdown("---")
-    
-    if df is not None:
-        total_words = len(df)
-        mastery_counts = df["Mastery"].value_counts()
-        count_A = mastery_counts.get("A", 0)
-        count_B = mastery_counts.get("B", 0)
-        count_C = mastery_counts.get("C", 0)
-        count_D = mastery_counts.get("D", 0)
+    if st.session_state.get("show_detailed_stats", False):
+        st.markdown("<h2 style='text-align: center; color: #4CAF50;'>📈 ランク別 詳細データ</h2>", unsafe_allow_html=True)
+        st.markdown("---")
         
-        mastered = count_A
-        progress_pct = int((mastered / total_words) * 100) if total_words > 0 else 0
-        
-        st.markdown("### 📊 現在の学習ダッシュボード")
-        
-        st.markdown(f"**マスター率 (A): <span style='color: #4CAF50; font-size: 1.2rem;'>{progress_pct}%</span>**", unsafe_allow_html=True)
-        st.progress(progress_pct / 100.0)
+        if df is not None:
+            stats_df = pd.crosstab(df['Rank'], df['Mastery'])
+            for col in ['A', 'B', 'C', 'D']:
+                if col not in stats_df.columns:
+                    stats_df[col] = 0
+            
+            stats_df = stats_df[['A', 'B', 'C', 'D']]
+            stats_df['合計'] = stats_df.sum(axis=1)
+            stats_df = stats_df.reset_index()
+            
+            st.dataframe(stats_df, use_container_width=True, hide_index=True)
+            
         st.markdown("<br>", unsafe_allow_html=True)
-        
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("🟦 A (完璧)", f"{count_A} 語")
-        col2.metric("🟩 B (だいたい)", f"{count_B} 語")
-        col3.metric("🟨 C (うろ覚え)", f"{count_C} 語")
-        col4.metric("🟥 D (ダメ)", f"{count_D} 語")
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.info("💡 **使い方:** 左のサイドバー（⚙️ 学習設定）から学習する条件を選んで、**「🚀 学習をスタート」**を押してください！")
+        if st.button("🔙 ホームに戻る", use_container_width=True):
+            st.session_state.show_detailed_stats = False
+            st.rerun()
+            
     else:
-        st.warning("データが見つかりません。")
-
+        st.markdown("<h1 style='text-align: center; color: #FF4B4B; font-size: 3rem;'>TOEFL iBT 3800</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; font-size: 1.2rem; color: #555;'>目指せスコアアップ！🚀</p>", unsafe_allow_html=True)
+        st.markdown("---")
+        
+        if df is not None:
+            total_words = len(df)
+            mastery_counts = df["Mastery"].value_counts()
+            count_A = mastery_counts.get("A", 0)
+            count_B = mastery_counts.get("B", 0)
+            count_C = mastery_counts.get("C", 0)
+            count_D = mastery_counts.get("D", 0)
+            
+            mastered = count_A
+            progress_pct = int((mastered / total_words) * 100) if total_words > 0 else 0
+            
+            st.markdown("### 📊 現在の学習ダッシュボード")
+            
+            st.markdown(f"**マスター率 (A): <span style='color: #4CAF50; font-size: 1.2rem;'>{progress_pct}%</span>**", unsafe_allow_html=True)
+            st.progress(progress_pct / 100.0)
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            col1, col2, col3, col4 = st.columns(4)
+            col1.metric("🟦 A (完璧)", f"{count_A} 語")
+            col2.metric("🟩 B (だいたい)", f"{count_B} 語")
+            col3.metric("🟨 C (うろ覚え)", f"{count_C} 語")
+            col4.metric("🟥 D (ダメ)", f"{count_D} 語")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("📈 ランク別の詳細データを見る", use_container_width=True):
+                st.session_state.show_detailed_stats = True
+                st.rerun()
+                
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.info("💡 **使い方:** 左のサイドバー（⚙️ 学習設定）から学習する条件を選んで、**「🚀 学習をスタート」**を押してください！")
+        else:
+            st.warning("データが見つかりません。")
+            
     st.markdown("<br><br>", unsafe_allow_html=True)
     if USE_GSHEETS and "connections" in st.secrets and "gsheets" in st.secrets.connections:
         st.caption("☁️ データソース: Googleスプレッドシート連携中")
