@@ -618,7 +618,7 @@ else:
         pronunciation_html = ""
         if pronunciation and pronunciation.lower() != 'nan':
             # Markdownのコードブロックと誤認識されないよう、余分なスペースや改行を入れない
-            pronunciation_html = f'<div style="background-color: #f1f5f9; color: #475569; padding: 10px 24px; border-radius: 12px; margin-bottom: 12px; font-family: \'Courier New\', Courier, monospace; font-size: 1.3rem; display: inline-block; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); letter-spacing: 1px;">{pronunciation}</div><br>'
+            pronunciation_html = f'<div style="background-color: #f1f5f9; color: #475569; padding: 10px 24px; border-radius: 12px; margin-bottom: 12px; font-family: \'Lucida Sans Unicode\', \'Segoe UI\', \'Helvetica Neue\', Helvetica, Arial, sans-serif; font-size: 1.4rem; font-weight: 500; display: inline-block; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); letter-spacing: 1.5px;">{pronunciation}</div><br>'
         
         card_html = f"""
 {css}
