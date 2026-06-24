@@ -606,19 +606,22 @@ else:
             box-sizing: border-box;
             padding: 20px;
         }}
-        .flip-instruction {{
-            font-size: 0.9rem;
-            color: #888;
-            text-align: center;
-            margin-top: 10px;
-            display: block;
-        }}
         </style>
         """
         
         # 単語が途中で改行されないよう、フォントサイズを動的調整しつつ word-break を keep-all に
         # ReactによるDOM要素の再利用を防ぎ、毎回アニメーションと裏返り状態をリセットするためにタグを切り替える
         container_tag = "div" if curr_idx % 2 == 0 else "section"
+        
+        # 発音記号が存在する場合のみ表示用のHTMLを生成する
+        pronunciation = str(word_data.get('Pronunciation', ''))
+        pronunciation_html = ""
+        if pronunciation and pronunciation.lower() != 'nan':
+            pronunciation_html = f"""
+            <div style="background-color: #f1f5f9; color: #475569; padding: 10px 24px; border-radius: 12px; margin-bottom: 12px; font-family: 'Courier New', Courier, monospace; font-size: 1.3rem; display: inline-block; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); letter-spacing: 1px;">
+                {pronunciation}
+            </div><br>
+            """
         
         card_html = f"""
         {css}
@@ -636,9 +639,8 @@ else:
             </label>
         </{container_tag}>
         <div style="text-align: center; margin-top: 10px;">
-            <span class="flip-instruction" style="display: inline-block; margin: 0;">👆 タップして裏返す</span>
-            <span style="color: #ccc; margin: 0 10px;">|</span>
-            <span id="speaker-icon-{curr_idx}" style="cursor: pointer; font-size: 1.1rem; color: #6e8efb; font-weight: bold; padding: 5px 10px; border-radius: 5px; background: #f0f4ff;">🔊 発音を聴く</span>
+            {pronunciation_html}
+            <span id="speaker-icon-{curr_idx}" style="cursor: pointer; font-size: 1.1rem; color: #6e8efb; font-weight: bold; padding: 8px 16px; border-radius: 8px; background: #e0e7ff; display: inline-block; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.2s;">🔊 発音を聴く</span>
         </div>
         """
         
