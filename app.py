@@ -617,32 +617,29 @@ else:
         pronunciation = str(word_data.get('Pronunciation', ''))
         pronunciation_html = ""
         if pronunciation and pronunciation.lower() != 'nan':
-            pronunciation_html = f"""
-            <div style="background-color: #f1f5f9; color: #475569; padding: 10px 24px; border-radius: 12px; margin-bottom: 12px; font-family: 'Courier New', Courier, monospace; font-size: 1.3rem; display: inline-block; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); letter-spacing: 1px;">
-                {pronunciation}
-            </div><br>
-            """
+            # Markdownのコードブロックと誤認識されないよう、余分なスペースや改行を入れない
+            pronunciation_html = f'<div style="background-color: #f1f5f9; color: #475569; padding: 10px 24px; border-radius: 12px; margin-bottom: 12px; font-family: \'Courier New\', Courier, monospace; font-size: 1.3rem; display: inline-block; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); letter-spacing: 1px;">{pronunciation}</div><br>'
         
         card_html = f"""
-        {css}
-        <{container_tag} class="flip-card-container">
-            <label style="display:block; width:100%; height:100%; margin:0;">
-                <input type="checkbox" class="flip-toggle" id="flip_{curr_idx}">
-                <div class="flip-card-inner">
-                    <div class="flip-card-front">
-                        <h1 style='font-size: clamp(2.5rem, 10vw, 5rem); margin: 0; word-break: keep-all; overflow-wrap: normal; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); padding: 0 20px;'>{word_data['Word']}</h1>
-                    </div>
-                    <div class="flip-card-back">
-                        <h2 style='font-size: clamp(1.5rem, 6vw, 2.5rem); margin: 0; word-break: normal; overflow-wrap: break-word; padding: 0 20px;'>{word_data['Meaning']}</h2>
-                    </div>
-                </div>
-            </label>
-        </{container_tag}>
-        <div style="text-align: center; margin-top: 10px;">
-            {pronunciation_html}
-            <span id="speaker-icon-{curr_idx}" style="cursor: pointer; font-size: 1.1rem; color: #6e8efb; font-weight: bold; padding: 8px 16px; border-radius: 8px; background: #e0e7ff; display: inline-block; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.2s;">🔊 発音を聴く</span>
+{css}
+<{container_tag} class="flip-card-container">
+    <label style="display:block; width:100%; height:100%; margin:0;">
+        <input type="checkbox" class="flip-toggle" id="flip_{curr_idx}">
+        <div class="flip-card-inner">
+            <div class="flip-card-front">
+                <h1 style='font-size: clamp(2.5rem, 10vw, 5rem); margin: 0; word-break: keep-all; overflow-wrap: normal; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); padding: 0 20px;'>{word_data['Word']}</h1>
+            </div>
+            <div class="flip-card-back">
+                <h2 style='font-size: clamp(1.5rem, 6vw, 2.5rem); margin: 0; word-break: normal; overflow-wrap: break-word; padding: 0 20px;'>{word_data['Meaning']}</h2>
+            </div>
         </div>
-        """
+    </label>
+</{container_tag}>
+<div style="text-align: center; margin-top: 10px;">
+{pronunciation_html}
+<span id="speaker-icon-{curr_idx}" style="cursor: pointer; font-size: 1.1rem; color: #6e8efb; font-weight: bold; padding: 8px 16px; border-radius: 8px; background: #e0e7ff; display: inline-block; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.2s;">🔊 発音を聴く</span>
+</div>
+"""
         
         st.markdown(card_html, unsafe_allow_html=True)
         
