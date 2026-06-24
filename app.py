@@ -361,10 +361,13 @@ with st.sidebar:
             available_ranks = [1, 2, 3, 4]
             
         st.write("**出題対象の Rank**")
+        if "rank_selector" not in st.session_state:
+            st.session_state.rank_selector = available_ranks
+            
         if hasattr(st, "pills"):
-            selected_ranks = st.pills("Rank", options=available_ranks, default=available_ranks, selection_mode="multi", label_visibility="collapsed", key="rank_selector", on_change=update_id_range)
+            selected_ranks = st.pills("Rank", options=available_ranks, selection_mode="multi", label_visibility="collapsed", key="rank_selector", on_change=update_id_range)
         else:
-            selected_ranks = st.multiselect("Rank", options=available_ranks, default=available_ranks, label_visibility="collapsed", key="rank_selector", on_change=update_id_range)
+            selected_ranks = st.multiselect("Rank", options=available_ranks, label_visibility="collapsed", key="rank_selector", on_change=update_id_range)
 
         st.write("**IDの範囲を指定**")
         col1, col2 = st.columns(2)
@@ -375,11 +378,13 @@ with st.sidebar:
 
         st.write("**出題対象の Mastery**")
         mastery_options = ["A", "B", "C", "D"]
-        default_mastery = ["B", "C", "D"]
+        if "mastery_selector" not in st.session_state:
+            st.session_state.mastery_selector = ["B", "C", "D"]
+            
         if hasattr(st, "pills"):
-            selected_masteries = st.pills("Mastery", options=mastery_options, default=default_mastery, selection_mode="multi", label_visibility="collapsed")
+            selected_masteries = st.pills("Mastery", options=mastery_options, selection_mode="multi", label_visibility="collapsed", key="mastery_selector")
         else:
-            selected_masteries = st.multiselect("Mastery", options=mastery_options, default=default_mastery, label_visibility="collapsed")
+            selected_masteries = st.multiselect("Mastery", options=mastery_options, label_visibility="collapsed", key="mastery_selector")
         
         st.markdown("---")
         
@@ -392,8 +397,24 @@ with st.sidebar:
         
         if not target_df.empty:
             max_q = min(200, len(target_df))
-            num_questions = st.number_input("今回の出題数 (最大200)", min_value=1, max_value=max_q, value=min(20, max_q))
+            if "num_q" not in st.session_state:
+                st.session_state.num_q = min(20, max_q)
+                
+            def dec_q():
+                st.session_state.num_q = max(1, st.session_state.num_q - 10)
+            def inc_q():
+                st.session_state.num_q = min(max_q, st.session_state.num_q + 10)
+                
+            st.write("**今回の出題数**")
+            col_q1, col_q2, col_q3 = st.columns([1, 2, 1])
+            with col_q1:
+                st.button("<<", on_click=dec_q, use_container_width=True)
+            with col_q2:
+                num_questions = st.number_input("出題数", min_value=1, max_value=max_q, key="num_q", label_visibility="collapsed")
+            with col_q3:
+                st.button(">>", on_click=inc_q, use_container_width=True)
             
+            st.markdown("<br>", unsafe_allow_html=True)
             if st.button("🚀 学習をスタート", use_container_width=True, type="primary"):
                 start_learning(target_df, num_questions)
             
