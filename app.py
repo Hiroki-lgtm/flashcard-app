@@ -173,6 +173,33 @@ except ImportError:
     USE_GSHEETS = False
 
 CSV_FILE = "words.csv"
+SETTINGS_FILE = "user_settings.json"
+
+import json
+import os
+
+def load_settings():
+    if os.path.exists(SETTINGS_FILE):
+        try:
+            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+def save_settings():
+    settings = {
+        "rank_selector": st.session_state.get("rank_selector", []),
+        "mastery_selector": st.session_state.get("mastery_selector", ["B", "C", "D"]),
+        "num_q": st.session_state.get("num_q", 20)
+    }
+    try:
+        with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
+            json.dump(settings, f)
+    except Exception:
+        pass
+
+user_settings = load_settings()
 
 # --- セッションステートの初期化 ---
 def init_session():
@@ -362,12 +389,16 @@ with st.sidebar:
             
         st.write("**出題対象の Rank**")
         if "rank_selector" not in st.session_state:
-            st.session_state.rank_selector = available_ranks
+            st.session_state.rank_selector = user_settings.get("rank_selector", available_ranks)
+            
+        def on_rank_change():
+            update_id_range()
+            save_settings()
             
         if hasattr(st, "pills"):
-            selected_ranks = st.pills("Rank", options=available_ranks, selection_mode="multi", label_visibility="collapsed", key="rank_selector", on_change=update_id_range)
+            selected_ranks = st.pills("Rank", options=available_ranks, selection_mode="multi", label_visibility="collapsed", key="rank_selector", on_change=on_rank_change)
         else:
-            selected_ranks = st.multiselect("Rank", options=available_ranks, label_visibility="collapsed", key="rank_selector", on_change=update_id_range)
+            selected_ranks = st.multiselect("Rank", options=available_ranks, label_visibility="collapsed", key="rank_selector", on_change=on_rank_change)
 
         st.write("**IDの範囲を指定**")
         col1, col2 = st.columns(2)
@@ -379,12 +410,12 @@ with st.sidebar:
         st.write("**出題対象の Mastery**")
         mastery_options = ["A", "B", "C", "D"]
         if "mastery_selector" not in st.session_state:
-            st.session_state.mastery_selector = ["B", "C", "D"]
+            st.session_state.mastery_selector = user_settings.get("mastery_selector", ["B", "C", "D"])
             
         if hasattr(st, "pills"):
-            selected_masteries = st.pills("Mastery", options=mastery_options, selection_mode="multi", label_visibility="collapsed", key="mastery_selector")
+            selected_masteries = st.pills("Mastery", options=mastery_options, selection_mode="multi", label_visibility="collapsed", key="mastery_selector", on_change=save_settings)
         else:
-            selected_masteries = st.multiselect("Mastery", options=mastery_options, label_visibility="collapsed", key="mastery_selector")
+            selected_masteries = st.multiselect("Mastery", options=mastery_options, label_visibility="collapsed", key="mastery_selector", on_change=save_settings)
         
         st.markdown("---")
         
@@ -398,21 +429,35 @@ with st.sidebar:
         if not target_df.empty:
             max_q = min(200, len(target_df))
             if "num_q" not in st.session_state:
-                st.session_state.num_q = min(20, max_q)
+                st.session_state.num_q = min(user_settings.get("num_q", 20), max_q)
                 
-            def dec_q():
+            def dec_q_10():
                 st.session_state.num_q = max(1, st.session_state.num_q - 10)
-            def inc_q():
+                save_settings()
+            def dec_q_1():
+                st.session_state.num_q = max(1, st.session_state.num_q - 1)
+                save_settings()
+            def inc_q_1():
+                st.session_state.num_q = min(max_q, st.session_state.num_q + 1)
+                save_settings()
+            def inc_q_10():
                 st.session_state.num_q = min(max_q, st.session_state.num_q + 10)
+                save_settings()
+            def on_num_q_change():
+                save_settings()
                 
             st.write("**今回の出題数**")
-            col_q1, col_q2, col_q3 = st.columns([1, 2, 1])
+            col_q1, col_q2, col_q3, col_q4, col_q5 = st.columns([1, 1, 3, 1, 1])
             with col_q1:
-                st.button("<<", on_click=dec_q, use_container_width=True)
+                st.button("<<", on_click=dec_q_10, use_container_width=True)
             with col_q2:
-                num_questions = st.number_input("出題数", min_value=1, max_value=max_q, key="num_q", label_visibility="collapsed")
+                st.button("<", on_click=dec_q_1, use_container_width=True)
             with col_q3:
-                st.button(">>", on_click=inc_q, use_container_width=True)
+                num_questions = st.number_input("出題数", min_value=1, max_value=max_q, key="num_q", label_visibility="collapsed", on_change=on_num_q_change)
+            with col_q4:
+                st.button(">", on_click=inc_q_1, use_container_width=True)
+            with col_q5:
+                st.button(">>", on_click=inc_q_10, use_container_width=True)
             
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("🚀 学習をスタート", use_container_width=True, type="primary"):
