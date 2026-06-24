@@ -449,15 +449,15 @@ with st.sidebar:
             st.write("**今回の出題数**")
             col_q1, col_q2, col_q3, col_q4, col_q5 = st.columns([1, 1, 3, 1, 1])
             with col_q1:
-                st.button("<<", on_click=dec_q_10, use_container_width=True)
+                st.button("◀", on_click=dec_q_10, use_container_width=True)
             with col_q2:
-                st.button("<", on_click=dec_q_1, use_container_width=True)
+                st.button("−", on_click=dec_q_1, use_container_width=True)
             with col_q3:
                 num_questions = st.number_input("出題数", min_value=1, max_value=max_q, key="num_q", label_visibility="collapsed", on_change=on_num_q_change)
             with col_q4:
-                st.button(">", on_click=inc_q_1, use_container_width=True)
+                st.button("＋", on_click=inc_q_1, use_container_width=True)
             with col_q5:
-                st.button(">>", on_click=inc_q_10, use_container_width=True)
+                st.button("▶", on_click=inc_q_10, use_container_width=True)
             
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("🚀 学習をスタート", use_container_width=True, type="primary"):
