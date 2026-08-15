@@ -603,11 +603,11 @@ else:
         st.markdown("<br>", unsafe_allow_html=True)
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("🔁 同じ設定でもう一度", use_container_width=True, type="primary"):
+            if st.button("Study Again!", use_container_width=True, type="primary"):
                 start_learning(target_df, num_questions)
                 st.rerun()
         with col2:
-            if st.button("🔄 設定し直して再スタート", use_container_width=True):
+            if st.button("Home", use_container_width=True):
                 init_session()
                 st.rerun()
     else:
