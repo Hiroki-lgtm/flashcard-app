@@ -175,7 +175,6 @@ SETTINGS_FILE = os.path.join(BASE_DIR, "user_settings.json")
 def load_settings():
     settings = {}
     
-    # 1. Googleスプレッドシート連携が有効な場合は Settings シートから取得
     if USE_GSHEETS and "connections" in st.secrets and "gsheets" in st.secrets.connections:
         try:
             conn = st.connection("gsheets", type=GSheetsConnection)
@@ -196,7 +195,6 @@ def load_settings():
         except Exception:
             pass
 
-    # 2. スプレッドシートから取得できない場合はローカルJSONを参照
     if os.path.exists(SETTINGS_FILE):
         try:
             with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
@@ -207,15 +205,12 @@ def load_settings():
     return settings
 
 def save_settings_bg(settings_dict):
-    """バックグラウンドで設定をスプレッドシート / ローカルJSONへ保存"""
-    # ローカルJSONへ保存
     try:
         with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
             json.dump(settings_dict, f, ensure_ascii=False, indent=2)
     except Exception:
         pass
 
-    # スプレッドシート Settings シートへ保存
     if USE_GSHEETS and "connections" in st.secrets and "gsheets" in st.secrets.connections:
         try:
             conn = st.connection("gsheets", type=GSheetsConnection)
@@ -246,7 +241,6 @@ def save_settings():
             "num_q": num_q_val
         }
         
-        # 非同期で保存を実行してUI操作を軽く保持
         threading.Thread(target=save_settings_bg, args=(settings,)).start()
         
         if hasattr(st, "query_params"):
@@ -395,6 +389,13 @@ with st.sidebar:
 
         st.write("**出題対象の Rank**")
         def on_rank_change():
+            # 選択されたRankに対応する最小・最大IDを自動計算して反映
+            selected = st.session_state.get("rank_selector", [])
+            if selected:
+                rank_df = df[df["Rank"].isin(selected)]
+                if not rank_df.empty:
+                    st.session_state.start_id = int(rank_df["ID"].min())
+                    st.session_state.end_id = int(rank_df["ID"].max())
             save_settings()
             
         if hasattr(st, "pills"):
